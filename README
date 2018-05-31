@@ -47,16 +47,44 @@ $INSTALL_PATH = "/dir/where/you/installed/RNAMMER";
 #对 core-rnammer 脚本进行编辑
 #There are two places where you'll find '--cpu 1 --compat'.  Remove the '--cpu1' at each of these places, and retain the '--compat'.
 #(直接将--cpu 1删除即可)
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
+
+
+
+3. 利用Trinotate进行创建数据库 (Trinotate relies heavily on SwissProt and Pfam)
+*Trinotate软件的最大弊端就是只能依赖swissprot和pfam两个库, 无法加载Nr和Nt两个数据库/(ㄒoㄒ)/~~
+官网推荐范例：TRINOTATE_HOME/admin/Build_Trinotate_Boilerplate_SQLite_db.pl  Trinotate
+实际操作：/home/tong/local/Trinotate-Trinotate-v3.1.1/admin/Build_Trinotate_Boilerplate_SQLite_db.pl  Trinotate
+之后系统自动下载uniprot和Pfam两个大文件
+Trinotate.sqlite
+uniprot_sprot.pep
+Pfam-A.hmm.gz
+
+4. Swissprot和Pfam数据库本地化 (也可以从NCBI下载Nr和Nt数据库，同样实现本地化)
+makeblastdb -in uniprot_sprot.pep -dbtype prot
+gunzip Pfam-A.hmm.gz
+hmmpress Pfam-A.hmm
+
+5. 执行blast本地搜索(必需)
+(非常值得注意，此处的Trinity.fasta文件最好使用原始文件|但是必须执行去冗余, CD-HIT 0.95|，不要进行剪辑，如删除过长的header)
+# search Trinity transcripts
+blastx -query Trinity.fasta -db uniprot_sprot.pep -num_threads 8 -max_target_seqs 1 -outfmt 6 > blastx.outfmt6
+# search Transdecoder-predicted proteins
+blastp -query transdecoder.pep -db uniprot_sprot.pep -num_threads 8 -max_target_seqs 1 -outfmt 6 > blastp.outfmt6
+
+6. HMMER搜索 (必需)
+hmmscan (HMMER) command:
+hmmscan --cpu 8 --domtblout TrinotatePFAM.out Pfam-A.hmm transdecoder.pep > pfam.log
+(CPU核数目可以经行调配)
+
+7. signalP预测信号肽 (选配)
+signalp -f short -n signalp.out transdecoder.pep
+
+8. tmhmm 跨膜区预测 (选配)
+tmhmm --short < transdecoder.pep > tmhmm.out
+
+9. RNAy预测 (选配)
+
+
 #
 #
 #
