@@ -83,10 +83,23 @@ signalp -f short -n signalp.out transdecoder.pep
 tmhmm --short < transdecoder.pep > tmhmm.out
 
 9. RNAy预测 (选配)
+官网推荐范例：$TRINOTATE_HOME/util/rnammer_support/RnammerTranscriptome.pl --transcriptome Trinity.fasta --path_to_rnammer /usr/bin/software/rnammer_v1.2/rnammer
+实际操作：/home/tong/local/Trinotate-Trinotate-v3.1.1/util/rnammer_support/RnammerTranscriptome.pl --transcriptome Trinity.fasta  --path_to_rnammer /home/tong/local/RNAMMER
 
+10. 整理以上结果, 导入数据库合并
+# 首先利用Trinity中perl脚本将拼接结果进行提取ORF
+官网推荐案例：$TRINITY_HOME/util/support_scripts/get_Trinity_gene_to_trans_map.pl Trinity.fasta >  Trinity.fasta.gene_trans_map
+实际操作：/home/tong/local/trinityrnaseq-Trinity-v2.6.5/util/support_scripts/get_Trinity_gene_to_trans_map.pl Trinity.fasta >  Trinity.fasta.gene_trans_map
 
-#
-#
-#
-#
+# 将提取ORF的数据导入Trinotate.sqlite数据库
+Trinotate Trinotate.sqlite init --gene_trans_map Trinity.fasta.gene_trans_map --transcript_fasta Trinity.fasta --transdecoder_pep transdecoder.pep
 
+# 依次导入blast|Pfam|tmhmm|signalp|结果
+Trinotate Trinotate.sqlite LOAD_swissprot_blastp blastp.outfmt6
+Trinotate Trinotate.sqlite LOAD_swissprot_blastx blastx.outfmt6
+Trinotate Trinotate.sqlite LOAD_pfam TrinotatePFAM.out
+Trinotate Trinotate.sqlite LOAD_tmhmm tmhmm.out
+Trinotate Trinotate.sqlite LOAD_signalp signalp.out
+
+11. 生成终极版的注释报告 (这个xls表格非常弱，也很凌乱，仍需要深入整理)
+Trinotate Trinotate.sqlite report > trinotate_annotation_report.xls
